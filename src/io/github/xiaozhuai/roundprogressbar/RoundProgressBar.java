@@ -22,9 +22,9 @@ import android.view.animation.AnticipateInterpolator;
 import io.github.xiaozhuai.roundprogressbar.R;
 
 /**
- * 仿iphone带进度的进度条，线程安全的View，可直接在线程中更新进度
+ * 圆形进度条控件
  * 
- * @author xiaanming
+ * @author xiaozhuai
  * 
  */
 public class RoundProgressBar extends View implements AnimatorListener, AnimatorUpdateListener{
