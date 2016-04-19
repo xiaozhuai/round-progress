@@ -9,17 +9,12 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Interpolator;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.graphics.Typeface;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.AnticipateInterpolator;
 
-import io.github.xiaozhuai.roundprogressbar.R;
+import com.cyb.launcher.R;
 
 /**
  * 圆形进度条控件
@@ -103,10 +98,10 @@ public class RoundProgressBar extends View implements AnimatorListener, Animator
 		/**
 		 * 画最外层的大圆环
 		 */
+		paint.setAntiAlias(true); // 消除锯齿
 		paint.setColor(roundBackgroundColor); // 设置圆环的颜色
 		paint.setStyle(Paint.Style.STROKE); // 设置空心
 		paint.setStrokeWidth(roundWidth); // 设置圆环的宽度
-		paint.setAntiAlias(true); // 消除锯齿
 		canvas.drawCircle(getWidth() / 2, // 圆心x
 				getWidth() / 2, // 圆心y
 				getWidth() / 2 - roundWidth / 2, // 半径
@@ -115,44 +110,25 @@ public class RoundProgressBar extends View implements AnimatorListener, Animator
 
 		
 
-
+		/**
+         * 画进度为0时的进度圆点
+         */
+        paint.setAntiAlias(true); // 消除锯齿
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(roundForegroundColor); // 设置圆环的颜色
+        canvas.drawCircle(
+                getWidth() / 2, // x
+                getRoundWidth() / 2, // y
+                getRoundWidth() / 2, // 半径
+                paint
+            ); // 画出圆环
 		
-		if(percent==0){
-			/**
-			 * 画进度为0时的进度圆点
-			 */
-			paint.setStyle(Paint.Style.FILL);
-			paint.setColor(roundForegroundColor); // 设置圆环的颜色
-			paint.setAntiAlias(true); // 消除锯齿
-			canvas.drawCircle(
-					getWidth() / 2, // x
-					getRoundWidth() / 2, // y
-					getRoundWidth() / 2, // 半径
-					paint
-				); // 画出圆环
-		}else{
-			/**
-			 * 画进度百分比固定的0点半圆形进度
-			 */
-			paint.setColor(roundForegroundColor);
-			paint.setAntiAlias(true);
-			paint.setStyle(Paint.Style.STROKE);
-			paint.setStrokeWidth(getRoundWidth() / 2);
-			RectF oval0 = new RectF(
-					getWidth() / 2 - getRoundWidth() / 2 + getRoundWidth() / 4,
-					0 + getRoundWidth() / 4,
-					getWidth() / 2 + getRoundWidth() / 2 - getRoundWidth() / 4,
-					getRoundWidth() - getRoundWidth() / 4
-				); // 用于定义的圆弧的形状和大小的界限
-
-			
-			canvas.drawArc(oval0, 80, 200, false, paint);
-			
+		if(percent!=0){
 			
 			/**
 			 * 画圆弧 ，画圆环的进度
 			 */
-
+			paint.setAntiAlias(true);
 			paint.setStrokeWidth(roundWidth); // 设置圆环的宽度
 			paint.setColor(roundForegroundColor); // 设置进度的颜色
 			RectF oval1 = new RectF(
@@ -176,7 +152,6 @@ public class RoundProgressBar extends View implements AnimatorListener, Animator
 			double sita = Math.PI * 2d * (double)(percent) - Math.PI / 2;
 			float tmpx = (float) (Math.cos(sita) * ( getWidth() / 2 - getRoundWidth() / 2 )) + getWidth() / 2;
 			float tmpy = (float) (Math.sin(sita) * ( getWidth() / 2 - getRoundWidth() / 2 )) + getWidth() / 2;
-			Log.e("ccccccc", tmpx+" --- "+tmpy);
 			canvas.drawCircle(
 					tmpx, // x
 					tmpy, // y
@@ -311,16 +286,14 @@ public class RoundProgressBar extends View implements AnimatorListener, Animator
 	}
 
 	/**
-	 * 设置进度
+	 * 设置进度,同步方法，用于外部调用，此为线程安全控件，由于考虑多线的问题，需要同步 刷新界面调用postInvalidate()能在非UI线程刷新
 	 * 
 	 * @param percent
 	 */
 	public synchronized void setPercent(float p) {
 		if(isAnimating){
-			//Log.e("ddddddd","111");
 			tmpPercent = p;
 		}else{
-			//Log.e("ddddddd","222");
 			setPercentImmediately(p);
 			postInvalidate();
 		}
@@ -331,7 +304,7 @@ public class RoundProgressBar extends View implements AnimatorListener, Animator
 	 * 
 	 * @param percent
 	 */
-	private synchronized void setPercentImmediately(float p) {
+	public synchronized void setPercentImmediately(float p) {
 		float per;
 		if (percent < 0f) {
 			per = 0;
